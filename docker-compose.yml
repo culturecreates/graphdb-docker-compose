@@ -1,0 +1,11 @@
+version: '2'
+services:
+  graphdb:
+    container_name: graph-db-instance
+    image: khaller/graphdb-free
+    restart: always
+    volumes:
+      - ~/data/graphdb-data:/opt/graphdb/data
+    ports:
+      - '7200:7200'
+    command: -Dgraphdb.workbench.cors.enable=true
