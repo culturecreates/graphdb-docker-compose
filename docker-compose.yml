@@ -5,7 +5,10 @@ services:
     image: khaller/graphdb-free
     restart: always
     volumes:
-      - ~/data/graphdb-data:/opt/graphdb/data
+      - /home/ubuntu/data/graphdb/data:/opt/graphdb/data
+      - /home/ubuntu/data/graphdb/conf:/opt/graphdb/conf
+      - /home/ubuntu/data/graphdb/logs:/opt/graphdb/logs
+      - /home/ubuntu/data/graphdb/work:/opt/graphdb/work
     ports:
       - '80:7200'
     command: -Dgraphdb.workbench.cors.enable=true -Xms4G -Xmx8G
