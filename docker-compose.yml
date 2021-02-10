@@ -11,4 +11,4 @@ services:
       - /home/ubuntu/data/graphdb/work:/opt/graphdb/work
     ports:
       - '80:7200'
-    command: -Dgraphdb.workbench.cors.enable=true -Xms4G -Xmx8G
+    command: -Dgraphdb.workbench.cors.enable=true -Xms4g -Xmx6g
