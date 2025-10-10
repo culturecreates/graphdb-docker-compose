@@ -14,8 +14,7 @@ services:
       -XX:+UseG1GC
       -Dgraphdb.workbench.maxUploadSize=809715200
     volumes:
-      - /home/ubuntu/graphdb/data:/opt/graphdb/home/data
-      - /home/ubuntu/graphdb/import:/root/graphdb-import
+      - /Users/saumier/data:/opt/graphdb/home/graphdb-import
     logging:
       driver: "json-file"
       options:
