@@ -1,0 +1,45 @@
+name: Backup Artsdata Core Graph to S3
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"   # Daily at 6:00 AM UTC
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set date variables
+        id: vars
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "MONTH=$(date +%Y-%m)" >> $GITHUB_OUTPUT
+          echo "DAY=$(date +%d)" >> $GITHUB_OUTPUT
+
+      - name: Download core graph dump
+        run: |
+          curl -f -X GET \
+            "https://${{ secrets.GRAPHDB_HOST }}/repositories/artsdata/statements?context=%3Chttp%3A%2F%2Fkg.artsdata.ca%2Fcore%3E" \
+            -H "accept: application/x-binary-rdf" \
+            -o "${{ steps.vars.outputs.DATE }}-artsdata-core.brf"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.S3_REGION }}
+
+      - name: Upload daily backup
+        run: |
+          aws s3 cp \
+            "${{ steps.vars.outputs.DATE }}-artsdata-core.brf" \
+            "s3://${{ vars.S3_BUCKET_NAME }}/daily/${{ steps.vars.outputs.DATE }}-artsdata-core.brf"
+
+      - name: Upload monthly snapshot (1st of month only)
+        if: steps.vars.outputs.DAY == '01'
+        run: |
+          aws s3 cp \
+            "${{ steps.vars.outputs.DATE }}-artsdata-core.brf" \
+            "s3://${{ vars.S3_BUCKET_NAME }}/monthly/${{ steps.vars.outputs.DATE }}-artsdata-core.brf"
