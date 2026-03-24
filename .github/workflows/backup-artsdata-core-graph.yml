@@ -31,8 +31,12 @@ jobs:
         run: |
           curl -f -X GET \
             "https://${{ env.GRAPHDB_HOST }}/repositories/artsdata/statements?context=%3Chttp%3A%2F%2Fkg.artsdata.ca%2Fcore%3E" \
-            -H "accept: text/turtle" \
-            -o "${{ steps.vars.outputs.DATE }}-artsdata-core.ttl"
+            -H "accept: text/x-turtlestar" \
+            -o "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls"
+
+      - name: Compress dump
+        run: |
+          gzip "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,12 +48,12 @@ jobs:
       - name: Upload daily backup
         run: |
           aws s3 cp \
-            "${{ steps.vars.outputs.DATE }}-artsdata-core.ttl" \
-            "s3://${{ env.S3_BUCKET_NAME }}/daily/${{ steps.vars.outputs.DATE }}-artsdata-core.ttl"
+            "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz" \
+            "s3://${{ env.S3_BUCKET_NAME }}/daily/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
 
       - name: Upload monthly snapshot (1st of month only)
         if: steps.vars.outputs.DAY == '01'
         run: |
           aws s3 cp \
-            "${{ steps.vars.outputs.DATE }}-artsdata-core.ttl" \
-            "s3://${{ env.S3_BUCKET_NAME }}/monthly/${{ steps.vars.outputs.DATE }}-artsdata-core.ttl"
+            "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz" \
+            "s3://${{ env.S3_BUCKET_NAME }}/monthly/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
