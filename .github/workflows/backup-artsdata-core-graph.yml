@@ -45,11 +45,11 @@ jobs:
         run: |
           aws s3 cp \
             "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz" \
-            "s3://${{ env.S3_BUCKET_NAME }}/daily/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
+            "s3://${{ env.S3_BUCKET_NAME }}/core-graph/daily/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
 
       - name: Upload monthly snapshot (1st of month only)
         if: steps.vars.outputs.DAY == '01'
         run: |
           aws s3 cp \
             "${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz" \
-            "s3://${{ env.S3_BUCKET_NAME }}/monthly/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
+            "s3://${{ env.S3_BUCKET_NAME }}/core-graph/monthly/${{ steps.vars.outputs.DATE }}-artsdata-core.ttls.gz"
