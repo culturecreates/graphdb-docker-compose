@@ -2,18 +2,14 @@ name: Backup Artsdata Core Graph to S3
 
 on:
   workflow_dispatch:
-    inputs:
-      graphdb_host:
-        description: "GraphDB host (e.g. staging.db.artsdata.ca or db.artsdata.ca)"
-        required: true
-        default: "staging.db.artsdata.ca"
+
   schedule:
     - cron: "0 6 * * *"   # Daily at 6:00 AM UTC
 
 env:
   S3_BUCKET_NAME: artsdata-graphdb-backups
   S3_REGION: ca-central-1
-  GRAPHDB_HOST: ${{ github.event.inputs.graphdb_host || 'db.artsdata.ca' }}
+  GRAPHDB_HOST: db.artsdata.ca
 
 jobs:
   backup:
