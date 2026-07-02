@@ -1,0 +1,48 @@
+name: Backup All Artsdata Graphs to S3 (Monthly)
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 8 1 * *"   # 1st of month, 08:00 UTC (~4:00 AM ET)
+
+env:
+  S3_BUCKET_NAME: artsdata-graphdb-backups
+  S3_REGION: ca-central-1
+  GRAPHDB_HOST: db.artsdata.ca
+  GRAPHDB_REPO: artsdata
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set date variable
+        id: vars
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Download all-graphs dump (Binary RDF)
+        run: |
+          curl -f -X GET \
+            "https://${{ env.GRAPHDB_HOST }}/repositories/${{ env.GRAPHDB_REPO }}/statements?infer=false" \
+            -H "accept: application/x-binary-rdf" \
+            -o "artsdata-${{ steps.vars.outputs.DATE }}-all-graphs.brf"
+
+      - name: Compress dump
+        run: |
+          zip "artsdata-${{ steps.vars.outputs.DATE }}-all-graphs.brf.zip" \
+              "artsdata-${{ steps.vars.outputs.DATE }}-all-graphs.brf"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.S3_REGION }}
+
+      - name: Upload monthly all-graphs backup
+        run: |
+          aws s3 cp \
+            "artsdata-${{ steps.vars.outputs.DATE }}-all-graphs.brf.zip" \
+            "s3://${{ env.S3_BUCKET_NAME }}/all-graphs/monthly/artsdata-${{ steps.vars.outputs.DATE }}-all-graphs.brf.zip"
