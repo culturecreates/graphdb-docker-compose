@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
           # The daily backup job runs at 6 AM on the same day; use today's date.
-          echo "BACKUP_KEY=core-graph/daily/$(date +%Y-%m-%d)-artsdata-core.ttls.gz" >> $GITHUB_OUTPUT
+          echo "BACKUP_KEY=core-graph/daily/artsdata-$(date +%Y-%m-%d)-core.ttls.gz" >> $GITHUB_OUTPUT
           echo "OUTPUT_FILENAME=artsdata-$(date +%Y-%m-%d)-core-minus-provenance.ttl" >> $GITHUB_OUTPUT
           echo "OUTPUT_GZ=artsdata-$(date +%Y-%m-%d)-core-minus-provenance.ttl.gz" >> $GITHUB_OUTPUT
 
@@ -41,8 +41,8 @@ jobs:
       - name: Download latest core backup from S3
         run: |
           aws s3 cp \
-            "s3://${{ env.S3_BUCKET_NAME }}/${{ steps.vars.outputs.BACKUP_KEY }}" \
-            artsdata-core.ttls.gz
+            "s3://${{ env.S3_BUCKET_NAME }}/artsdata-${{ steps.vars.outputs.BACKUP_KEY }}" \
+            -core.ttls.gz
           gunzip artsdata-core.ttls.gz
           # Result: artsdata-core.ttls on disk
 
