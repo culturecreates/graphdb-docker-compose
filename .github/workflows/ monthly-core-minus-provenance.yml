@@ -1,0 +1,90 @@
+name: Monthly Core Graph — Strip Provenance and Register on Databus
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 8 1 * *"   # Monthly on the 1st at 8:00 AM UTC (after the daily backup at 6:00)
+
+env:
+  S3_BUCKET_NAME: artsdata-graphdb-backups
+  S3_REGION: ca-central-1
+  DATABUS_GROUP: artsdata-dump
+  DATABUS_ARTIFACT: core-minus-provenance
+
+jobs:
+  strip-and-register:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        # Provides sparql/delete_reifier_annotations.sparql,
+        # sparql/delete_prov_predicates.sparql, and scripts/strip_provenance.rb
+
+      - name: Set date variables
+        id: vars
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          # The daily backup job runs at 6 AM on the same day; use today's date.
+          echo "BACKUP_KEY=core-graph/daily/$(date +%Y-%m-%d)-artsdata-core.ttls.gz" >> $GITHUB_OUTPUT
+          echo "OUTPUT_FILENAME=artsdata-$(date +%Y-%m-%d)-core-minus-provenance.ttl" >> $GITHUB_OUTPUT
+          echo "OUTPUT_GZ=artsdata-$(date +%Y-%m-%d)-core-minus-provenance.ttl.gz" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.S3_REGION }}
+
+      - name: Download latest core backup from S3
+        run: |
+          aws s3 cp \
+            "s3://${{ env.S3_BUCKET_NAME }}/${{ steps.vars.outputs.BACKUP_KEY }}" \
+            artsdata-core.ttls.gz
+          gunzip artsdata-core.ttls.gz
+          # Result: artsdata-core.ttls on disk
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install gems
+        run: gem install linkeddata sparql
+
+      - name: Strip provenance and write RDF 1.1 Turtle
+        run: |
+          ruby scripts/strip_provenance.rb \
+            artsdata-core.ttls \
+            "${{ steps.vars.outputs.OUTPUT_FILENAME }}"
+
+      - name: Compress output
+        run: gzip "${{ steps.vars.outputs.OUTPUT_FILENAME }}"
+
+      - name: Upload stripped graph to S3
+        id: s3_upload
+        run: |
+          DEST_KEY="core-graph-minus-provenance/monthly/${{ steps.vars.outputs.OUTPUT_GZ }}"
+          aws s3 cp \
+            "${{ steps.vars.outputs.OUTPUT_GZ }}" \
+            "s3://${{ env.S3_BUCKET_NAME }}/${DEST_KEY}"
+
+          # Bucket allows public reads, so the plain virtual-hosted-style URL
+          # is directly usable as the Databus downloadUrl.
+          echo "DOWNLOAD_URL=https://${{ env.S3_BUCKET_NAME }}.s3.${{ env.S3_REGION }}.amazonaws.com/${DEST_KEY}" >> $GITHUB_OUTPUT
+
+
+      - name: Register artifact on Artsdata Databus (register-only)
+        uses: culturecreates/artsdata-pipeline-action@v4
+        with:
+          mode: "push"
+          artifact: "${{ env.DATABUS_ARTIFACT }}"
+          group: "${{ env.DATABUS_GROUP }}"
+          version: "${{ steps.vars.outputs.DATE }}"
+          publisher: ${{ secrets.PUBLISHER_URI_GREGORY }}
+          downloadUrl: "${{ steps.s3_upload.outputs.DOWNLOAD_URL }}"
+          register-only: "true"
+          comment: "Monthly core graph snapshot with provenance triples removed, RDF 1.1 compatible."
+          token: ${{ secrets.GITHUB_TOKEN }}

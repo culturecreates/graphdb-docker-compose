@@ -1,0 +1,11 @@
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+DELETE {
+  ?bnode ?p ?o .
+}
+WHERE {
+  ?s ?provPred ?bnode .
+  FILTER(STRSTARTS(STR(?provPred), STR(prov:)))
+  FILTER(isBlank(?bnode))
+  ?bnode ?p ?o .
+}
