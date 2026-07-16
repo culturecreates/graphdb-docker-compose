@@ -41,8 +41,7 @@ jobs:
       - name: Download latest core backup from S3
         run: |
           aws s3 cp \
-            "s3://${{ env.S3_BUCKET_NAME }}/artsdata-${{ steps.vars.outputs.BACKUP_KEY }}" \
-            -core.ttls.gz
+            "s3://${{ env.S3_BUCKET_NAME }}/${{ steps.vars.outputs.BACKUP_KEY }}"
           gunzip artsdata-core.ttls.gz
           # Result: artsdata-core.ttls on disk
 
