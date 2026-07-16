@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        # Provides sparql/delete_reifier_annotations.sparql,
+        # Provides sparql/delete_blank_node_provenance_objects.sparql,
         # sparql/delete_prov_predicates.sparql, and scripts/strip_provenance.rb
 
       - name: Set date variables
@@ -41,7 +41,8 @@ jobs:
       - name: Download latest core backup from S3
         run: |
           aws s3 cp \
-            "s3://${{ env.S3_BUCKET_NAME }}/${{ steps.vars.outputs.BACKUP_KEY }}"
+            "s3://${{ env.S3_BUCKET_NAME }}/${{ steps.vars.outputs.BACKUP_KEY }}" \
+            artsdata-core.ttls.gz
           gunzip artsdata-core.ttls.gz
           # Result: artsdata-core.ttls on disk
 
