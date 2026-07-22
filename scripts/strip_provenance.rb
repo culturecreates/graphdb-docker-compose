@@ -1,6 +1,5 @@
 require 'linkeddata'
 require 'sparql'
-require 'stringio'
 
 SCRIPT_DIR = File.expand_path(__dir__)
 SPARQL_DIR = File.expand_path('../sparql', SCRIPT_DIR)
@@ -21,33 +20,60 @@ def load_query(path)
   File.read(path)
 end
 
+# Streaming replacement for $stderr during the read. Counts lines containing
+# "<<" (the RDF-star parse-error signal) without ever retaining more than
+# one partial line in memory, and without echoing anything to the real
+# stderr/stdout.
+class CountingErrorSink
+  attr_reader :dropped_count, :total_lines
+
+  def initialize
+    @dropped_count = 0
+    @total_lines = 0
+    @partial = String.new
+  end
+
+  def write(str)
+    @partial << str
+    while (newline_index = @partial.index("\n"))
+      line = @partial.slice!(0..newline_index)
+      @total_lines += 1
+      @dropped_count += 1 if line.include?('<<')
+    end
+    str.bytesize
+  end
+
+  def flush
+    # Count whatever's left in the partial buffer as one final line, then
+    # clear it -- keeps memory bounded even if the stream never ends in "\n".
+    unless @partial.empty?
+      @total_lines += 1
+      @dropped_count += 1 if @partial.include?('<<')
+      @partial.clear
+    end
+  end
+end
+
 puts "Loading Turtle-star dump: #{input_path} (plain RDF 1.1 grammar, no RDF-star) …"
 
 repo = RDF::Repository.new
 
-# Capture stderr during the read so we can count how many statements were
-# dropped for containing "<<", without changing the read behavior itself —
-# this is the same plain RDF::Reader.open call used previously; only the
-# surrounding instrumentation is new.
-captured_stderr = StringIO.new
+error_sink = CountingErrorSink.new
 original_stderr = $stderr
-$stderr = captured_stderr
+$stderr = error_sink
 
 begin
   RDF::Reader.open(input_path) { |reader| repo.insert(reader) }
 ensure
+  error_sink.flush
   $stderr = original_stderr
 end
 
-parser_log = captured_stderr.string
-# Echo the captured log to stdout so it's still visible in CI job output,
-# just no longer treated as evidence of failure.
-puts parser_log unless parser_log.empty?
-
-dropped_star_lines = parser_log.lines.count { |l| l.include?('<<') }
+dropped_star_lines = error_sink.dropped_count
 
 puts "  Loaded #{repo.count} statements."
-puts "  Parser dropped #{dropped_star_lines} malformed-for-RDF-1.1 statement(s) containing \"<<\"."
+puts "  Parser logged #{error_sink.total_lines} line(s) to stderr while reading; " \
+     "#{dropped_star_lines} contained \"<<\" (RDF-star statements dropped, as intended)."
 
 if dropped_star_lines.zero?
   warn "::warning::No RDF-star (\"<<\") parse errors were logged while reading " \
