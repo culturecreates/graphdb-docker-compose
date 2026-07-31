@@ -82,7 +82,6 @@ jobs:
           mode: "push"
           artifact: "${{ env.DATABUS_ARTIFACT }}"
           group: "${{ env.DATABUS_GROUP }}"
-          version: "${{ steps.vars.outputs.DATE }}"
           publisher: ${{ secrets.PUBLISHER_URI_GREGORY }}
           downloadUrl: "${{ steps.s3_upload.outputs.DOWNLOAD_URL }}"
           register-only: "true"
