@@ -69,7 +69,9 @@ jobs:
           DEST_KEY="core-graph-minus-provenance/monthly/${{ steps.vars.outputs.OUTPUT_GZ }}"
           aws s3 cp \
             "${{ steps.vars.outputs.OUTPUT_GZ }}" \
-            "s3://${{ env.S3_BUCKET_NAME }}/${DEST_KEY}"
+            "s3://${{ env.S3_BUCKET_NAME }}/${DEST_KEY}" \
+            --content-disposition "attachment; filename=\"${{ steps.vars.outputs.OUTPUT_GZ }}\"" \
+            --content-type "application/gzip"
 
           # Bucket allows public reads, so the plain virtual-hosted-style URL
           # is directly usable as the Databus downloadUrl.
