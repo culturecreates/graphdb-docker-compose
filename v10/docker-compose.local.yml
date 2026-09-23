@@ -9,15 +9,12 @@ services:
       -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
       -Dgraphdb.workbench.cors.enable=true
       -Dgraphdb.home=/opt/graphdb/home
-      -Xms6g
-      -Xmx8g
+      -Xms2g
+      -Xmx5g
       -XX:+UseG1GC
       -Dgraphdb.workbench.maxUploadSize=809715200
-      -Dgraphdb.engine.log-slow-queries-time=9
     volumes:
-      - /home/ubuntu/graphdb/data:/opt/graphdb/home/data
-      - /home/ubuntu/graphdb/import:/root/graphdb-import
-      - /home/ubuntu/graphdb/logs:/opt/graphdb/home/logs
+      - /Users/saumier/data:/opt/graphdb/home/graphdb-import
     logging:
       driver: "json-file"
       options:
