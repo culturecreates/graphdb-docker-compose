@@ -4,9 +4,45 @@ Docker Compose configs for running [Ontotext GraphDB](https://graphdb.ontotext.c
 
 - `v9/` — legacy config (`culturecreatesorg/graphdb` image)
 - `v10/` — current config (`ontotext/graphdb:10.6.3` image)
+- `plugins/artsdata-plugin/` — GraphDB plugin with Artsdata's SPARQL functions (currently `adp:prefLangLiteral`,
+  the value of a property in the preferred language). Mounted by both v10 configs. See its
+  [README](plugins/artsdata-plugin/README.md).
 
 > For the full step-by-step setup guide (Lightsail instance creation, firewall rules, Nginx, SSL, GraphDB accounts), see the wiki page:
 > **[GraphDB on Lightsail: Nginx and SSL](https://github.com/culturecreates/culture-creates-wiki/wiki/GraphDB-on-Lightsail-:-Nginx-and-SSL)**
+
+## Running locally
+
+Requires Docker with Compose, plus JDK 11+ and Maven to build the plugin. Run the commands from the repo root.
+
+1. **Build the plugin.** Both v10 configs mount the plugin jar, so build it before starting GraphDB.
+   This also runs the plugin's tests:
+   ```bash
+   mvn -f plugins/artsdata-plugin/pom.xml clean package
+   ```
+   The jar is written to `plugins/artsdata-plugin/target/artsdata-plugin.jar`. Add `-DskipTests` to skip the tests.
+
+2. **Set your import folder.** `v10/docker-compose.local.yml` mounts `/Users/saumier/data` as the GraphDB import
+   directory. Change it to a folder on your machine, or remove the line.
+
+3. **Start GraphDB:**
+   ```bash
+   docker compose -f v10/docker-compose.local.yml up -d
+   ```
+   The Workbench is at http://localhost:7200.
+
+4. **Check that the plugin loaded:**
+   ```bash
+   docker compose -f v10/docker-compose.local.yml logs graphdb | grep -i "artsdata plugin initialized"
+   ```
+
+5. **Stop GraphDB:**
+   ```bash
+   docker compose -f v10/docker-compose.local.yml down
+   ```
+
+After changing the plugin, rebuild it (step 1) and restart GraphDB so it loads the new jar:
+`docker compose -f v10/docker-compose.local.yml restart graphdb`.
 
 ## Production setup (db.artsdata.ca)
 
@@ -14,6 +50,24 @@ Docker Compose configs for running [Ontotext GraphDB](https://graphdb.ontotext.c
 - **Container**: `ontotext/graphdb:10.6.3`, started with `-Xms6g -Xmx8g -XX:+UseG1GC`
 - **Deployed compose file**: lives directly on the server at `/home/ubuntu/graphdb/docker-compose.yml` — it is **not** synced from this repo. Its volume mounts differ from `v10/docker-compose.yml` here (server uses separate `data`, `import`, and `logs` mounts under `/home/ubuntu/graphdb/`); treat the files in this repo as reference configs, and diff against the live file before deploying any change.
 - **Repository config**: single repository `artsdata`, `query-timeout` = 10s, `query-limit-results` = 10000, ruleset `owl-horst` (see `config.ttl` on the server for the full parameter list)
+
+### Deploying the Artsdata plugin
+
+`v10/docker-compose.yml` mounts `/home/ubuntu/graphdb/plugins/artsdata-plugin` into GraphDB's plugin folder and
+sets the default language order with `-Dlabel.languages=en,fr`. The live compose file is not synced from this
+repo, so:
+
+1. Build the jar: `mvn -f plugins/artsdata-plugin/pom.xml clean package`.
+2. Copy `plugins/artsdata-plugin/target/artsdata-plugin.jar` to `/home/ubuntu/graphdb/plugins/artsdata-plugin/`
+   on the server.
+3. Add `-Dlabel.languages=en,fr` option to `/home/ubuntu/graphdb/docker-compose.yml`.
+4. Recreate the container and check the log:
+   ```bash
+   docker compose up -d --force-recreate graphdb
+   docker logs graphdb 2>&1 | grep -i "artsdata plugin initialized"
+   ```
+
+**Rollback:** remove the volume line and recreate the container.
 
 ### Networking / TLS
 
