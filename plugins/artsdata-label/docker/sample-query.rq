@@ -1,0 +1,11 @@
+PREFIX schema: <http://schema.org/>
+PREFIX adp: <http://kg.artsdata.ca/plugin#>
+
+# Expected (with docker/sample-data.ttl):
+#   ex:person1  "person1 name in english"@en  "person1 english description"@en
+#   ex:person2  "person2 name in french"@fr   "person2 french description"@fr
+SELECT ?item ?nameLabel ?descriptionLabel WHERE {
+  ?item a schema:Person .
+  BIND(adp:label(?item, schema:name, "en fr") AS ?nameLabel)
+  BIND(adp:label(?item, schema:description, "en fr") AS ?descriptionLabel)
+}
