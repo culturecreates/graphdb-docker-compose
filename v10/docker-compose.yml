@@ -19,7 +19,7 @@ services:
       - /home/ubuntu/graphdb/data:/opt/graphdb/home/data
       - /home/ubuntu/graphdb/import:/root/graphdb-import
       - /home/ubuntu/graphdb/logs:/opt/graphdb/home/logs
-      - /home/ubuntu/graphdb/plugins/artsdata-label:/opt/graphdb/dist/lib/plugins/artsdata-label:ro
+      - /home/ubuntu/graphdb/plugins/artsdata-plugin:/opt/graphdb/dist/lib/plugins/artsdata-plugin:ro
     logging:
       driver: "json-file"
       options:

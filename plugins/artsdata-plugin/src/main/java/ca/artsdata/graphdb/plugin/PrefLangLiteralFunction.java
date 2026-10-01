@@ -1,4 +1,4 @@
-package ca.artsdata.graphdb.label;
+package ca.artsdata.graphdb.plugin;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SPARQL function {@code adp:label}: the best-language value of a property.
+ * SPARQL function {@code adp:prefLangLiteral}: the best-language value of a property.
  *
  * <pre>
  *   PREFIX schema: &lt;http://schema.org/&gt;
@@ -22,8 +22,8 @@ import java.util.List;
  *
  *   SELECT ?item ?nameLabel ?descriptionLabel WHERE {
  *     ?item a schema:Person .
- *     BIND(adp:label(?item, schema:name, "en fr") AS ?nameLabel)
- *     BIND(adp:label(?item, schema:description, "en fr") AS ?descriptionLabel)
+ *     BIND(adp:prefLangLiteral(?item, schema:name, "en fr") AS ?nameLabel)
+ *     BIND(adp:prefLangLiteral(?item, schema:description, "en fr") AS ?descriptionLabel)
  *   }
  * </pre>
  *
@@ -35,16 +35,16 @@ import java.util.List;
  *       ({@code "en", "fr"}). They come before the default order from {@code -Dlabel.languages}.</li>
  * </ol>
  * Returns the best value by {@link LanguageRanking}. An IRI value is returned as a plain string. If the subject
- * has no value for the property, the result is unbound; use {@code COALESCE(adp:label(...), STR(?item))} to fall
- * back to the IRI.
+ * has no value for the property, the result is unbound; to fall back to the IRI, use
+ * {@code COALESCE(adp:prefLangLiteral(...), STR(?item))}.
  *
  * <p>The function reads the repository through the {@link TripleSource} that RDF4J passes to
  * {@link #evaluate(TripleSource, Value...)}.
  */
-public class LabelFunction implements Function {
+public class PrefLangLiteralFunction implements Function {
 
     public static final String NAMESPACE = "http://kg.artsdata.ca/plugin#";
-    public static final String URI = NAMESPACE + "label";
+    public static final String URI = NAMESPACE + "prefLangLiteral";
 
     /** JVM system property with the default language order, e.g. {@code -Dlabel.languages=en,fr}. */
     public static final String LANGUAGES_PROPERTY = "label.languages";
@@ -53,11 +53,11 @@ public class LabelFunction implements Function {
     private final List<String> defaultLanguages;
 
     /** Reads the default language order from {@value #LANGUAGES_PROPERTY}. */
-    public LabelFunction() {
+    public PrefLangLiteralFunction() {
         this(LanguageRanking.parse(System.getProperty(LANGUAGES_PROPERTY, DEFAULT_LANGUAGES)));
     }
 
-    public LabelFunction(List<String> defaultLanguages) {
+    public PrefLangLiteralFunction(List<String> defaultLanguages) {
         this.defaultLanguages = List.copyOf(defaultLanguages);
     }
 
@@ -74,21 +74,23 @@ public class LabelFunction implements Function {
     public Value evaluate(TripleSource tripleSource, Value... args) throws ValueExprEvaluationException {
         if (args.length < 2) {
             throw new ValueExprEvaluationException(
-                    "adp:label expects (?subject, property [, \"en fr\"]), got " + args.length + " argument(s)");
+                    "adp:prefLangLiteral expects (?subject, property [, \"en fr\"]), got "
+                            + args.length + " argument(s)");
         }
         if (!(args[0] instanceof Resource)) {
-            throw new ValueExprEvaluationException("adp:label: the first argument must be the subject, got " + args[0]);
+            throw new ValueExprEvaluationException(
+                    "adp:prefLangLiteral: the first argument must be the subject, got " + args[0]);
         }
         if (!(args[1] instanceof IRI)) {
-            throw new ValueExprEvaluationException("adp:label: the second argument must be a property IRI, got "
-                    + args[1]);
+            throw new ValueExprEvaluationException(
+                    "adp:prefLangLiteral: the second argument must be a property IRI, got " + args[1]);
         }
         LanguageRanking ranking = LanguageRanking.of(requestedLanguages(args), defaultLanguages);
 
         Value best = bestValue(tripleSource, (Resource) args[0], (IRI) args[1], ranking);
         if (best == null) {
             // No value: unbound result (an error in a function expression leaves the BIND variable unbound)
-            throw new ValueExprEvaluationException("adp:label: no value for " + args[1] + " on " + args[0]);
+            throw new ValueExprEvaluationException("adp:prefLangLiteral: no value for " + args[1] + " on " + args[0]);
         }
         return asResult(best, tripleSource.getValueFactory());
     }
@@ -97,7 +99,7 @@ public class LabelFunction implements Function {
     @Override
     @Deprecated
     public Value evaluate(ValueFactory valueFactory, Value... args) throws ValueExprEvaluationException {
-        throw new ValueExprEvaluationException("adp:label needs repository access, which was not provided");
+        throw new ValueExprEvaluationException("adp:prefLangLiteral needs repository access, which was not provided");
     }
 
     private static List<String> requestedLanguages(Value[] args) {
@@ -105,7 +107,7 @@ public class LabelFunction implements Function {
         for (int i = 2; i < args.length; i++) {
             if (!(args[i] instanceof Literal)) {
                 throw new ValueExprEvaluationException(
-                        "adp:label: languages must be strings such as \"en fr\", got " + args[i]);
+                        "adp:prefLangLiteral: languages must be strings such as \"en fr\", got " + args[i]);
             }
             languages.addAll(LanguageRanking.parse(args[i].stringValue()));
         }

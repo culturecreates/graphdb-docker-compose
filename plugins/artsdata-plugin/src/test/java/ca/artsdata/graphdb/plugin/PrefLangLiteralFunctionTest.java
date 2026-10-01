@@ -1,4 +1,4 @@
-package ca.artsdata.graphdb.label;
+package ca.artsdata.graphdb.plugin;
 
 import com.ontotext.graphdb.Config;
 import com.ontotext.test.TemporaryLocalFolder;
@@ -30,10 +30,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Integration tests for adp:label against an embedded GraphDB repository.
+ * Integration tests for adp:prefLangLiteral against an embedded GraphDB repository.
  * The default language order is "en,fr" (surefire systemPropertyVariables in the pom).
  */
-public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
+public class PrefLangLiteralFunctionTest extends SingleRepositoryFunctionalTest {
 
     private static final String PREFIXES = ""
             + "PREFIX schema: <http://schema.org/>\n"
@@ -94,7 +94,7 @@ public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
     private Map<String, BindingSet> labels(String property, String languageArgs) {
         return byItem(rows("SELECT ?item ?label WHERE {\n"
                 + "  ?item a schema:Person .\n"
-                + "  BIND(adp:label(?item, " + property + languageArgs + ") AS ?label)\n"
+                + "  BIND(adp:prefLangLiteral(?item, " + property + languageArgs + ") AS ?label)\n"
                 + "}"));
     }
 
@@ -117,8 +117,8 @@ public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
         Map<String, BindingSet> rows = byItem(rows(""
                 + "SELECT ?item ?nameLabel ?descriptionLabel WHERE {\n"
                 + "  ?item a schema:Person .\n"
-                + "  BIND(adp:label(?item, schema:name, \"en fr\") AS ?nameLabel)\n"
-                + "  BIND(adp:label(?item, schema:description, \"en fr\") AS ?descriptionLabel)\n"
+                + "  BIND(adp:prefLangLiteral(?item, schema:name, \"en fr\") AS ?nameLabel)\n"
+                + "  BIND(adp:prefLangLiteral(?item, schema:description, \"en fr\") AS ?descriptionLabel)\n"
                 + "}"));
         assertEquals("one row per person", 7, rows.size());
         assertLabel(rows, "person1", "nameLabel", "person1 name in english", "en");
@@ -180,7 +180,7 @@ public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
         Map<String, BindingSet> rows = byItem(rows(""
                 + "SELECT ?item ?label WHERE {\n"
                 + "  ?item a schema:Person .\n"
-                + "  BIND(COALESCE(adp:label(?item, schema:description, \"en\"), STR(?item)) AS ?label)\n"
+                + "  BIND(COALESCE(adp:prefLangLiteral(?item, schema:description, \"en\"), STR(?item)) AS ?label)\n"
                 + "}"));
         assertLabel(rows, "person1", "label", "person1 english description", "en");
         assertLabel(rows, "person6", "label", "http://example.com/person6", null);
@@ -191,7 +191,7 @@ public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
     @Test
     public void worksAsSelectExpression() {
         Map<String, BindingSet> rows = byItem(rows(""
-                + "SELECT ?item (adp:label(?item, schema:name, \"fr\") AS ?label) WHERE {\n"
+                + "SELECT ?item (adp:prefLangLiteral(?item, schema:name, \"fr\") AS ?label) WHERE {\n"
                 + "  ?item a schema:Person .\n"
                 + "}"));
         assertEquals(7, rows.size());
@@ -204,8 +204,8 @@ public class LabelFunctionTest extends SingleRepositoryFunctionalTest {
         Map<String, BindingSet> rows = byItem(rows(""
                 + "SELECT ?item ?a ?b WHERE {\n"
                 + "  ?item a schema:Person .\n"
-                + "  BIND(adp:label(?item) AS ?a)\n"                     // missing property
-                + "  BIND(adp:label(?item, \"schema:name\") AS ?b)\n"    // property is a string, not an IRI
+                + "  BIND(adp:prefLangLiteral(?item) AS ?a)\n"                     // missing property
+                + "  BIND(adp:prefLangLiteral(?item, \"schema:name\") AS ?b)\n"    // property is a string, not an IRI
                 + "}"));
         assertEquals(7, rows.size());
         assertNull(rows.get("person1").getValue("a"));

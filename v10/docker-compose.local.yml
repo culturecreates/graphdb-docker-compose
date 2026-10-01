@@ -16,7 +16,7 @@ services:
       -Dlabel.languages=en,fr
     volumes:
       - /Users/saumier/data:/opt/graphdb/home/graphdb-import
-      - ../plugins/artsdata-label/target/artsdata-label.jar:/opt/graphdb/dist/lib/plugins/artsdata-label/artsdata-label.jar:ro
+      - ../plugins/artsdata-plugin/target/artsdata-plugin.jar:/opt/graphdb/dist/lib/plugins/artsdata-plugin/artsdata-plugin.jar:ro
     logging:
       driver: "json-file"
       options:

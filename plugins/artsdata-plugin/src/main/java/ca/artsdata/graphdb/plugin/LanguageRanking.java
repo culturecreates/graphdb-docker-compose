@@ -1,4 +1,4 @@
-package ca.artsdata.graphdb.label;
+package ca.artsdata.graphdb.plugin;
 
 import java.util.ArrayList;
 import java.util.Collections;

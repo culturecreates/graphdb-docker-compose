@@ -1,0 +1,15 @@
+PREFIX schema: <http://schema.org/>
+PREFIX adp: <http://kg.artsdata.ca/plugin#>
+
+# Expected with docker/sample-data.ttl:
+#   ex:p1  "John Dupont"@en      "Singer"@en
+#   ex:p2  "Mary Smith"@en       "Dancer"@en
+#   ex:p3  "Céline Tremblay"@fr  (unbound: no description)
+#   ex:p4  "Plain Name"          (unbound)
+#   ex:p5  "Nome Italiano"@it    (unbound)
+#   ex:p6  (unbound)             (unbound)
+SELECT ?item ?name ?description WHERE {
+  ?item a schema:Person .
+  BIND(adp:prefLangLiteral(?item, schema:name, "en fr") AS ?name)
+  BIND(adp:prefLangLiteral(?item, schema:description, "en fr") AS ?description)
+}
