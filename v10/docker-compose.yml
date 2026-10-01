@@ -14,10 +14,12 @@ services:
       -XX:+UseG1GC
       -Dgraphdb.workbench.maxUploadSize=809715200
       -Dgraphdb.engine.log-slow-queries-time=9
+      -Dlabel.languages=en,fr
     volumes:
       - /home/ubuntu/graphdb/data:/opt/graphdb/home/data
       - /home/ubuntu/graphdb/import:/root/graphdb-import
       - /home/ubuntu/graphdb/logs:/opt/graphdb/home/logs
+      - /home/ubuntu/graphdb/plugins/artsdata-label:/opt/graphdb/dist/lib/plugins/artsdata-label:ro
     logging:
       driver: "json-file"
       options:
