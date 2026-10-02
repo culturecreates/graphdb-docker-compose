@@ -13,8 +13,10 @@ services:
       -Xmx5g
       -XX:+UseG1GC
       -Dgraphdb.workbench.maxUploadSize=809715200
+      -Dlabel.languages=en,fr
     volumes:
       - /Users/saumier/data:/opt/graphdb/home/graphdb-import
+      - ../plugins/artsdata-plugin/target/artsdata-plugin.jar:/opt/graphdb/dist/lib/plugins/artsdata-plugin/artsdata-plugin.jar:ro
     logging:
       driver: "json-file"
       options:

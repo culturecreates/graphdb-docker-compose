@@ -1,0 +1,15 @@
+@prefix schema: <http://schema.org/> .
+@prefix ex: <http://example.com/> .
+
+ex:p1 a schema:Person ; schema:name "Jean Dupont"@fr , "John Dupont"@en;
+schema:description "Singer"@en , "Chanteur"@fr ;
+schema:sameAs ex:p1a .
+
+ex:p2 a schema:Person ; schema:name "Mary Smith"@en , "M. Smith";
+schema:description "Danseur"@fr , "Dancer"@en .
+
+ex:p3 a schema:Person ; schema:name "Céline Tremblay"@fr, "Céline Tremblay" .
+
+ex:p4 a schema:Person ; schema:name "Plain Name", "Nombre"@es .
+ex:p5 a schema:Person ; schema:name "Nome Italiano"@it .
+ex:p6 a schema:Person .

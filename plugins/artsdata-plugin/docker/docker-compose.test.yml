@@ -1,0 +1,13 @@
+# Local end-to-end test of the plugin against the same GraphDB version as production.
+#   mvn clean package            (from plugins/artsdata-plugin/)
+#   docker compose -f docker/docker-compose.test.yml up -d
+#   open http://localhost:7200, create a repository "test", load docker/sample-data.ttl, run docker/sample-query.rq
+services:
+  graphdb:
+    image: ontotext/graphdb:10.6.3
+    ports:
+      - "7200:7200"
+    environment:
+      GDB_JAVA_OPTS: "-Dlabel.languages=en,fr -Dgraphdb.workbench.maxUploadSize=809715200"
+    volumes:
+      - ../target/artsdata-plugin.jar:/opt/graphdb/dist/lib/plugins/artsdata-plugin/artsdata-plugin.jar:ro

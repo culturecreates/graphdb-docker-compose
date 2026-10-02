@@ -1,0 +1,29 @@
+@prefix schema: <http://schema.org/> .
+@prefix ex:     <http://example.com/> .
+
+# --- Dataset from the requirement ---
+ex:person1 a schema:Person ;
+    schema:name "person1 name in english"@en , "person1 name in french"@fr ;
+    schema:description "person1 english description"@en , "person1 french description"@fr .
+
+ex:person2 a schema:Person ;
+    schema:name "person2 name in french"@fr ;
+    schema:description "person2 french description"@fr .
+
+# --- Edge cases ---
+# regional tag: fr-CA matches "fr"
+ex:person3 a schema:Person ; schema:name "Céline Tremblay"@fr-CA , "Celine"@es .
+
+# untagged beats a language that was not asked for
+ex:person4 a schema:Person ; schema:name "Plain Name" , "Nombre"@es .
+
+# no name: returns empty name
+ex:person5 a schema:Person ;
+    schema:genre <http://example.com/genre/jazz> , "Jazz"@en ;
+    schema:sameAs <http://example.com/other/p5> .
+
+# no description; only another language for the name
+ex:person6 a schema:Person ; schema:name "Only name"@it .
+
+# two names in the same language -> alphabetical
+ex:person7 a schema:Person ; schema:name "Zoé"@en , "Anne"@en .
