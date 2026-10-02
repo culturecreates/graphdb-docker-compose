@@ -17,7 +17,7 @@ services:
       -Dlabel.languages=en,fr
     volumes:
       - /home/ubuntu/graphdb/data:/opt/graphdb/home/data
-      - /home/ubuntu/graphdb/import:/root/graphdb-import
+      - /home/ubuntu/graphdb/import:/opt/graphdb/home/graphdb-import
       - /home/ubuntu/graphdb/logs:/opt/graphdb/home/logs
       - /home/ubuntu/graphdb/plugins/artsdata-plugin:/opt/graphdb/dist/lib/plugins/artsdata-plugin:ro
     logging:
