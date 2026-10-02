@@ -53,6 +53,36 @@ After changing the plugin, rebuild it (step 1) and restart GraphDB so it loads t
 
 ### Deploying the Artsdata plugin
 
+    **Prerequisites**
+
+- On the machine that builds the jar:
+  - **Java 11 or newer (JDK).** The plugin is compiled for Java 11 (`maven.compiler.release` in `pom.xml`).
+    Check with `java -version`.
+  - **Maven 3.6 or newer.** Check with `mvn -version`.
+  - **Access to `https://maven.ontotext.com`,** where the GraphDB SDK is published.
+- On the server: nothing extra. The `ontotext/graphdb:10.6.3` image ships its own Java runtime.
+
+Installing Java and Maven (any JDK from 11 up works; 17 is used below):
+
+- **macOS** (with [Homebrew](https://brew.sh)):
+  ```bash
+  brew install openjdk@17 maven
+  # make this JDK visible to macOS and to `java` on the command line
+  sudo ln -sfn "$(brew --prefix)/opt/openjdk@17/libexec/openjdk.jdk" /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+  ```
+- **Linux** (Ubuntu / Debian):
+  ```bash
+  sudo apt update
+  sudo apt install -y openjdk-17-jdk maven
+  ```
+
+Then check that both are found, and that Maven uses Java 11 or newer:
+
+```bash
+java -version
+mvn -version
+```
+
 `v10/docker-compose.yml` mounts `/home/ubuntu/graphdb/plugins/artsdata-plugin` into GraphDB's plugin folder and
 sets the default language order with `-Dlabel.languages=en,fr`. The live compose file is not synced from this
 repo, so:
