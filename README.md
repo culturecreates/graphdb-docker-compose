@@ -88,16 +88,11 @@ sets the default language order with `-Dlabel.languages=en,fr`. The live compose
 repo, so:
 
 1. Build the jar: `mvn -f plugins/artsdata-plugin/pom.xml clean package`.
-2. Copy `plugins/artsdata-plugin/target/artsdata-plugin.jar` to `/home/ubuntu/graphdb/plugins/artsdata-plugin/`
-   on the server.
-3. Add `-Dlabel.languages=en,fr` option to `/home/ubuntu/graphdb/docker-compose.yml`.
-4. Recreate the container and check the log:
+2. Recreate the container and check the log:
    ```bash
    docker compose up -d --force-recreate graphdb
    docker logs graphdb 2>&1 | grep -i "artsdata plugin initialized"
    ```
-
-**Rollback:** remove the volume line and recreate the container.
 
 ### Networking / TLS
 
