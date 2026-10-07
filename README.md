@@ -22,8 +22,8 @@ Requires Docker with Compose, plus JDK 11+ and Maven to build the plugin. Run th
    ```
    The jar is written to `plugins/artsdata-plugin/target/artsdata-plugin.jar`. Add `-DskipTests` to skip the tests.
 
-2. **Set your import folder.** `v10/docker-compose.local.yml` mounts `/Users/saumier/data` as the GraphDB import
-   directory. Change it to a folder on your machine, or remove the line.
+2. **Copy import files to the folder 'local/import'** `/opt/graphdb/home/graphdb-import` mounts `./local/import` as the GraphDB import
+   directory.
 
 3. **Start GraphDB:**
    ```bash
