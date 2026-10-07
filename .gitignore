@@ -1,6 +1,7 @@
 target/
 *.iml
 .idea/
-local/*
+local/data/*
+local/import/*
 !local/data/.gitkeep
 !local/import/.gitkeep
