@@ -16,6 +16,7 @@ services:
       -Dlabel.languages=en,fr
     volumes:
       - ../data:/opt/graphdb/home/graphdb-import
+      - ../data:/opt/graphdb/home/data
       - ../plugins/artsdata-plugin/target/artsdata-plugin.jar:/opt/graphdb/dist/lib/plugins/artsdata-plugin/artsdata-plugin.jar:ro
     logging:
       driver: "json-file"
